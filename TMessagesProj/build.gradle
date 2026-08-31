@@ -83,11 +83,11 @@ android {
         versionName APP_VERSION_NAME
 
         // Obtain your own keys at: https://core.telegram.org/api/obtaining_api_id
-        buildConfigField 'int', 'APP_ID', localProperties.getProperty("APP_ID")
-        buildConfigField 'String', 'APP_HASH', localProperties.getProperty("APP_HASH")
+        buildConfigField 'int', 'APP_ID', localProperties.getProperty("APP_ID", "2040")
+        buildConfigField 'String', 'APP_HASH', '"' + localProperties.getProperty("APP_HASH", "b18441a1ff607e10a989891a5462e627") + '"'
 
         // Google Console: https://console.cloud.google.com/google/maps-apis/credentials
-        resValue 'string', 'MAPS_V2_API', localProperties.getProperty("MAPS_V2_API")
+        resValue 'string', 'MAPS_V2_API', '"' + localProperties.getProperty("MAPS_V2_API", "") + '"'
 
         externalNativeBuild {
             cmake {
@@ -119,11 +119,24 @@ android {
     }
 
     signingConfigs {
+        debug {
+            storeFile file("config/debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
         release {
-            storeFile file("config/extera.jks")
-            storePassword localProperties.getProperty("SIGNING_KEY_STORE_PASSWORD")
-            keyAlias localProperties.getProperty("SIGNING_KEY_ALIAS")
-            keyPassword localProperties.getProperty("SIGNING_KEY_PASSWORD")
+            if (file("config/debug.keystore").exists()) {
+                storeFile file("config/debug.keystore")
+                storePassword "android"
+                keyAlias "androiddebugkey"
+                keyPassword "android"
+            } else {
+                storeFile file("config/extera.jks")
+                storePassword localProperties.getProperty("SIGNING_KEY_STORE_PASSWORD", "android")
+                keyAlias localProperties.getProperty("SIGNING_KEY_ALIAS", "androiddebugkey")
+                keyPassword localProperties.getProperty("SIGNING_KEY_PASSWORD", "android")
+            }
         }
     }
 

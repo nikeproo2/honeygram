@@ -10,8 +10,8 @@ on:
 
 jobs:
   build:
-    name: Build HoneyGram Android APK
-    runs-on: ubuntu-latest
+    name: Build HoneyGram APK
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repository
@@ -27,43 +27,42 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      - name: Set up Android NDK & SDK
+      - name: Set up Android NDK
         uses: nttld/setup-ndk@v1
         with:
-          ndk-version: r25c
+          ndk-version: r21e
+
+      - name: Prepare Signing Keystore & Keys
+        run: |
+          mkdir -p TMessagesProj/config
+          if [ ! -f TMessagesProj/config/debug.keystore ]; then
+            keytool -genkeypair -v -keystore TMessagesProj/config/debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          echo "APP_ID=2040" > API_KEYS
+          echo "APP_HASH=b18441a1ff607e10a989891a5462e627" >> API_KEYS
+          echo "MAPS_V2_API=" >> API_KEYS
+          echo "SIGNING_KEY_STORE_PASSWORD=android" >> API_KEYS
+          echo "SIGNING_KEY_ALIAS=androiddebugkey" >> API_KEYS
+          echo "SIGNING_KEY_PASSWORD=android" >> API_KEYS
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build HoneyGram Release APK
-        run: ./gradlew assembleAfatRelease -x test --parallel --max-workers=4
-
-      - name: Sign APK (if keystore secret exists)
-        if: env.SIGNING_KEY != ''
-        uses: ralfirza/action-sign-apk@v1
-        with:
-          apk-path: TMessagesProj/build/outputs/apk/afat/release/*.apk
-          key-store-base64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.KEY_ALIAS }}
-          key-store-password: ${{ secrets.KEY_STORE_PASSWORD }}
-          key-password: ${{ secrets.KEY_PASSWORD }}
-        env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+      - name: Build HoneyGram Universal & ARM64 APKs
+        run: ./gradlew assembleAfatRelease assembleArm64Release -x test --parallel
 
       - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: HoneyGram-Release-APKs
-          path: |
-            TMessagesProj/build/outputs/apk/afat/release/*.apk
-            TMessagesProj/build/outputs/apk/afat/debug/*.apk
+          path: TMessagesProj/build/outputs/apk/**/*.apk
           retention-days: 14
 
-      - name: Create GitHub Release (on tags)
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v2
         with:
-          files: TMessagesProj/build/outputs/apk/afat/release/*.apk
+          files: TMessagesProj/build/outputs/apk/**/*.apk
           generate_release_notes: true
           draft: false
           prerelease: false
