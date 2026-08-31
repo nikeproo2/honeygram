@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- HoneyGram Settings & Brand -->
+    <string name="HoneyGramSettings">Настройки HoneyGram</string>
+    <string name="HoneyGramSubtitle">Material You мод для продвинутых пользователей</string>
+    <string name="HoneyGramSupporter">Поддержавший HoneyGram</string>
+    
+    <!-- Multi-Server & Accounts -->
+    <string name="ServerEnvironment">Окружение серверов</string>
+    <string name="ServerProd">Production (Официальный)</string>
+    <string name="ServerTest">Test DC (Тестовый)</string>
+    <string name="ServerCustom">Кастомный MTProto сервер</string>
+    <string name="ImportSession">Импорт .session / tdata</string>
+    <string name="ExportSession">Экспорт аккаунта в .session</string>
+    <string name="SessionImportSuccess">Сессия успешно импортирована!</string>
+    
+    <!-- Ghost Mode & Privacy -->
+    <string name="GhostMode">Режим Призрака</string>
+    <string name="GhostModeDesc">Не слать статус прочтения, набор текста и скрыть онлайн</string>
+    <string name="DontSendRead">Не помечать сообщения прочитанными</string>
+    <string name="DontSendTyping">Скрывать набор текста и запись аудио</string>
+    <string name="HideStoriesSeen">Инкогнито просмотр историй</string>
+    
+    <!-- Restrictions Bypass -->
+    <string name="BypassRestrictions">Обход ограничений контента</string>
+    <string name="BypassRestrictedDesc">Разрешить скачивание медиа и пересылку из защищенных каналов</string>
+    <string name="AllowScreenshots">Разрешить скриншоты везде</string>
+    <string name="BypassDisappearingTimer">Отключить таймер самоуничтожения фото</string>
+    
+    <!-- Network & WebProxy -->
+    <string name="WebProxyBypass">Нативный WebProxy (Анти-DPI)</string>
+    <string name="WebProxyModeAuto">Автоматически (при блокировках)</string>
+    <string name="WebProxyModeAlways">Всегда использовать WebProxy</string>
+    <string name="WebProxyModeDisabled">Отключено (прямое или свой прокси)</string>
+    <string name="UserProxyPriorityNotice">Пользовательский прокси всегда имеет наивысший приоритет</string>
+    
+    <!-- AI & Auto-Responder -->
+    <string name="AIAutoResponder">ИИ-Автоответчик</string>
+    <string name="AIConfig">Настройка OpenAI-совместимого ИИ</string>
+    <string name="AIBaseUrl">API Base URL</string>
+    <string name="AIApiKey">API Ключ</string>
+    <string name="AIModelName">Название модели</string>
+    <string name="AISystemPrompt">Системный промпт</string>
+    <string name="RulesAutoResponder">Конструктор правил автоответчика</string>
+    <string name="AddRule">Добавить правило</string>
+    
+    <!-- Inline AI Actions -->
+    <string name="AIFixGrammar">Исправить ошибки и пунктуацию</string>
+    <string name="AIMakePolite">Сделать вежливее</string>
+    <string name="AIShorten">Сократить текст</string>
+    <string name="AITranslate">Перевести через ИИ</string>
+    
+    <!-- Power Tools & Spoofers -->
+    <string name="TurboDownloader">Турбо-загрузчик (Многопоточный)</string>
+    <string name="PanicPinTitle">Panic PIN (Ложный пароль)</string>
+    <string name="PanicPinDesc">Ввод ложного PIN-кода для скрытия приватных аккаунтов</string>
+    <string name="VisualPremium">Визуальный Telegram Premium</string>
+    <string name="VisualStars">Визуальные Telegram Stars</string>
+    <string name="VoiceChanger">Модулятор голоса для аудио</string>
+    <string name="KeywordAlerts">Отслеживание ключевых слов</string>
+    <string name="InspectIdData">Инспектор ID и метаданных</string>
+</resources>

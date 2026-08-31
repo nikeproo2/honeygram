@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- HoneyGram Settings & Brand -->
+    <string name="HoneyGramSettings">HoneyGram Settings</string>
+    <string name="HoneyGramSubtitle">Material You mod for power users</string>
+    <string name="HoneyGramSupporter">Honey Supporter</string>
+    
+    <!-- Multi-Server & Accounts -->
+    <string name="ServerEnvironment">Server Environment</string>
+    <string name="ServerProd">Production (Official)</string>
+    <string name="ServerTest">Test DC (Staging)</string>
+    <string name="ServerCustom">Custom MTProto Server</string>
+    <string name="ImportSession">Import .session / tdata</string>
+    <string name="ExportSession">Export account to .session</string>
+    <string name="SessionImportSuccess">Session imported successfully!</string>
+    
+    <!-- Ghost Mode & Privacy -->
+    <string name="GhostMode">Ghost Mode</string>
+    <string name="GhostModeDesc">Do not send read marks, typing status, and hide online</string>
+    <string name="DontSendRead">Do Not Send Read Receipts</string>
+    <string name="DontSendTyping">Hide Typing &amp; Audio Status</string>
+    <string name="HideStoriesSeen">Incognito Story Views</string>
+    
+    <!-- Restrictions Bypass -->
+    <string name="BypassRestrictions">Content Restrictions Bypass</string>
+    <string name="BypassRestrictedDesc">Allow saving media and forwarding from protected channels</string>
+    <string name="AllowScreenshots">Allow Screenshots Everywhere</string>
+    <string name="BypassDisappearingTimer">Disable Self-Destruct Timer</string>
+    
+    <!-- Network & WebProxy -->
+    <string name="WebProxyBypass">Native WebProxy (Anti-DPI)</string>
+    <string name="WebProxyModeAuto">Auto (Fallback on block)</string>
+    <string name="WebProxyModeAlways">Always use WebProxy</string>
+    <string name="WebProxyModeDisabled">Disabled (Direct or Custom Proxy)</string>
+    <string name="UserProxyPriorityNotice">Custom user proxy always takes highest priority</string>
+    
+    <!-- AI & Auto-Responder -->
+    <string name="AIAutoResponder">AI Auto-Responder</string>
+    <string name="AIConfig">OpenAI-Compatible AI Setup</string>
+    <string name="AIBaseUrl">API Base URL</string>
+    <string name="AIApiKey">API Key</string>
+    <string name="AIModelName">Model Name</string>
+    <string name="AISystemPrompt">System Prompt</string>
+    <string name="RulesAutoResponder">Rule-Based Auto-Responder</string>
+    <string name="AddRule">Add New Rule</string>
+    
+    <!-- Inline AI Actions -->
+    <string name="AIFixGrammar">Fix Grammar &amp; Spelling</string>
+    <string name="AIMakePolite">Make Polite &amp; Friendly</string>
+    <string name="AIShorten">Make Concise</string>
+    <string name="AITranslate">Translate with AI</string>
+    
+    <!-- Power Tools & Spoofers -->
+    <string name="TurboDownloader">Turbo Downloader (Multi-thread)</string>
+    <string name="PanicPinTitle">Panic PIN (Stealth Mode)</string>
+    <string name="PanicPinDesc">Enter decoy PIN to hide secondary accounts</string>
+    <string name="VisualPremium">Visual Telegram Premium</string>
+    <string name="VisualStars">Visual Telegram Stars</string>
+    <string name="VoiceChanger">Voice Modulation Effects</string>
+    <string name="KeywordAlerts">Keyword Alerts Watcher</string>
+    <string name="InspectIdData">Inspect ID &amp; Metadata</string>
+</resources>
