@@ -147,12 +147,12 @@ android {
             debuggable false
             jniDebuggable false
             signingConfig signingConfigs.release
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled false
+            shrinkResources false
             multiDexEnabled true
             zipAlignEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            ndk.debugSymbolLevel = 'FULL'
+            ndk.debugSymbolLevel = 'NONE'
             buildConfigField "boolean", "DEBUG_VERSION", "true"
             buildConfigField "boolean", "IS_PM_BUILD", isPmBuild
         }
@@ -161,12 +161,12 @@ android {
             debuggable false
             jniDebuggable false
             signingConfig signingConfigs.release
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled false
+            shrinkResources false
             multiDexEnabled true
             zipAlignEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            ndk.debugSymbolLevel = 'FULL'
+            ndk.debugSymbolLevel = 'NONE'
             buildConfigField "boolean", "DEBUG_VERSION", "false"
             buildConfigField "boolean", "IS_PM_BUILD", isPmBuild
         }
@@ -229,5 +229,7 @@ apply plugin: 'com.google.firebase.crashlytics'
 
 tasks.withType(JavaCompile).configureEach {
     options.fork = true
-    options.forkOptions.jvmArgs += ['-Xss8m']
+    options.forkOptions.jvmArgs = ['-Xmx4096m', '-Xss8m', '-XX:+UseG1GC']
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-nowarn', '-Xlint:none']
 }
