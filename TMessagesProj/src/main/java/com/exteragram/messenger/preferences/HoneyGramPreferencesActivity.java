@@ -22,6 +22,7 @@ import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextDetailSettingsCell;
 import org.telegram.ui.Components.EditTextBoldCursor;
+import org.telegram.ui.Components.RecyclerListView;
 
 public class HoneyGramPreferencesActivity extends BasePreferencesActivity {
 

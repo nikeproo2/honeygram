@@ -26,6 +26,10 @@ public class EncryptionHelper {
         return text;
     }
 
+    public static String encryptMessage(String text, long dialogId, BaseEncryptor encryptor) {
+        return text;
+    }
+
     public interface EncryptCallback {
         void onEncrypted(String message);
     }
@@ -43,15 +47,9 @@ public class EncryptionHelper {
     public static void setEncryptorTypeFor(long dialogId, int type) {
     }
 
-    public static class Encryptor {
-        public String getName() {
-            return "None";
-        }
-    }
+    private static final BaseEncryptor defaultEncryptor = new BaseEncryptor();
 
-    private static final Encryptor defaultEncryptor = new Encryptor();
-
-    public static Encryptor getEncryptorBy(long dialogId) {
+    public static BaseEncryptor getEncryptorBy(long dialogId) {
         return defaultEncryptor;
     }
 }
