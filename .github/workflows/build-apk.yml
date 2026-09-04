@@ -38,8 +38,8 @@ jobs:
           if [ ! -f TMessagesProj/config/debug.keystore ]; then
             keytool -genkeypair -v -keystore TMessagesProj/config/debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
           fi
-          echo "APP_ID=2040" > API_KEYS
-          echo "APP_HASH=b18441a1ff607e10a989891a5462e627" >> API_KEYS
+          echo "APP_ID=6" > API_KEYS
+          echo "APP_HASH=eb06d4abfb49dc3eeb1aeb98ae0f581e" >> API_KEYS
           echo "MAPS_V2_API=" >> API_KEYS
           echo "SIGNING_KEY_STORE_PASSWORD=android" >> API_KEYS
           echo "SIGNING_KEY_ALIAS=androiddebugkey" >> API_KEYS
@@ -51,7 +51,7 @@ jobs:
       - name: Build HoneyGram APK
         env:
           GRADLE_OPTS: "-Xmx6144m -Xss8m -XX:MaxMetaspaceSize=1024m"
-        run: ./gradlew assembleArm64Release -x test --no-daemon --stacktrace
+        run: ./gradlew assembleArm64Release assembleAfatRelease -x test --no-daemon --stacktrace
 
       - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4

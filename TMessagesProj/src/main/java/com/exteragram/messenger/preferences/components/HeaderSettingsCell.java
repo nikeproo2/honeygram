@@ -1,20 +1,11 @@
-/*
-
- This is the source code of exteraGram for Android.
-
- We do not and cannot prevent the use of our code,
- but be respectful and credit the original author.
-
- Copyright @immat0x1, 2023
-
-*/
-
 package com.exteragram.messenger.preferences.components;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -40,40 +31,46 @@ public class HeaderSettingsCell extends FrameLayout {
     public HeaderSettingsCell(Context context) {
         super(context);
 
-        Drawable arrow = ContextCompat.getDrawable(context, R.drawable.ic_logo_foreground).mutate();
         Theme.ThemeInfo theme = Theme.getActiveTheme();
-        int color = ContextCompat.getColor(context, R.color.ic_background);
+        boolean isDark = theme == null || theme.isDark();
 
-        if (theme.isMonet() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            color = MonetUtils.getColor(theme.isDark() ? "n1_800" : "a1_100");
-            arrow.setColorFilter(new PorterDuffColorFilter(MonetUtils.getColor(theme.isDark() ? "a1_100" : "n2_700"), PorterDuff.Mode.MULTIPLY));
-        } else {
-            arrow.setAlpha((int) (70 * 2.55f));
+        int amberPrimary = 0xFFFFB800;
+        int amberLight = 0xFFFFD54F;
+
+        GradientDrawable logoBg = new GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                new int[]{amberPrimary, amberLight}
+        );
+        logoBg.setCornerRadius(AndroidUtilities.dp(30));
+
+        Drawable arrow = ContextCompat.getDrawable(context, R.drawable.ic_logo_foreground);
+        if (arrow != null) {
+            arrow = arrow.mutate();
+            arrow.setColorFilter(new PorterDuffColorFilter(0xFF1F1500, PorterDuff.Mode.SRC_IN));
         }
 
         ImageView logo = new ImageView(context);
         logo.setScaleType(ImageView.ScaleType.CENTER);
-        logo.setBackground(Theme.createCircleDrawable(AndroidUtilities.dp(108), color));
-        //TODO: logo.setBackground(new GradientArrowBackground(context, color));
+        logo.setBackground(logoBg);
         logo.setImageDrawable(arrow);
-        addView(logo, LayoutHelper.createFrame(108, 108, Gravity.CENTER | Gravity.TOP, 0, 20, 0, 0));
+        addView(logo, LayoutHelper.createFrame(88, 88, Gravity.CENTER | Gravity.TOP, 0, 18, 0, 0));
 
         titleTextView = new TextView(context);
         titleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         titleTextView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM));
         titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 22);
-        titleTextView.setText(String.format("%s %s", LocaleController.getString(R.string.exteraAppName), BuildVars.BUILD_VERSION_STRING));
+        titleTextView.setText(String.format("HoneyGram %s", BuildVars.BUILD_VERSION_STRING));
         titleTextView.setLines(1);
         titleTextView.setMaxLines(1);
         titleTextView.setSingleLine(true);
         titleTextView.setPadding(0, 0, 0, 0);
         titleTextView.setGravity(Gravity.CENTER);
-        addView(titleTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER | Gravity.TOP, 50, 145, 50, 0));
+        addView(titleTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER | Gravity.TOP, 40, 118, 40, 0));
 
         TextView subtitleTextView = new TextView(context);
         subtitleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
         subtitleTextView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_REGULAR));
-        subtitleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        subtitleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         subtitleTextView.setLineSpacing(AndroidUtilities.dp(2), 1f);
         subtitleTextView.setText(LocaleController.getString("AboutExteraDescription", R.string.AboutExteraDescription));
         subtitleTextView.setGravity(Gravity.CENTER);
@@ -81,8 +78,7 @@ public class HeaderSettingsCell extends FrameLayout {
         subtitleTextView.setMaxLines(0);
         subtitleTextView.setSingleLine(false);
         subtitleTextView.setPadding(0, 0, 0, 0);
-        addView(subtitleTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER | Gravity.TOP, 60, 180, 60, 27));
-
+        addView(subtitleTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER | Gravity.TOP, 40, 146, 40, 18));
     }
 
     @Override

@@ -7577,7 +7577,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     }
                     removePrev = false;
                 }
-                presentFragment(new HoneyGramPreferencesActivity(), removePrev, true);
+                presentFragment(new MainPreferencesActivity(), removePrev, true);
                 break;
             }
             case HoneyBottomNavigationView.TAB_PROFILE: {

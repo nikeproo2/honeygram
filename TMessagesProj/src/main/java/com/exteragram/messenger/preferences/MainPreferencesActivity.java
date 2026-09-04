@@ -1,14 +1,3 @@
-/*
-
- This is the source code of exteraGram for Android.
-
- We do not and cannot prevent the use of our code,
- but be respectful and credit the original author.
-
- Copyright @immat0x1, 2023
-
-*/
-
 package com.exteragram.messenger.preferences;
 
 import android.animation.Animator;
@@ -18,52 +7,86 @@ import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.text.InputType;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.exteragram.messenger.preferences.components.HeaderSettingsCell;
-import com.exteragram.messenger.preferences.updater.UpdaterBottomSheet;
 
+import org.telegram.honeygram.HoneyConfig;
+import org.telegram.honeygram.auth.ServerManager;
+import org.telegram.honeygram.auth.SessionManager;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.LocaleController;
-import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.browser.Browser;
+import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCell;
+import org.telegram.ui.Cells.TextCheckCell;
+import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.DataSettingsActivity;
+import org.telegram.ui.FiltersSetupActivity;
+import org.telegram.ui.LanguageSelectActivity;
+import org.telegram.ui.NotificationsSettingsActivity;
+import org.telegram.ui.PrivacySettingsActivity;
+import org.telegram.ui.SessionsActivity;
+
+import java.io.File;
+import java.util.Locale;
 
 public class MainPreferencesActivity extends BasePreferencesActivity {
 
+    private static final int AMBER_PRIMARY = 0xFFFFB800;
+    private static final int AMBER_CONTAINER = 0xFF3E2D00;
+
     private View actionBarBackground;
     private AnimatorSet actionBarAnimator;
-
     private HeaderSettingsCell headerSettingsCell;
 
-    private int categoryHeaderRow;
-    private int honeyGramRow;
-    private int generalRow;
+    // Header & Heroes
+    private int headerRow;
+    private int heroHeaderRow;
+    private int premiumHubRow;
+    private int phantomStarsRow;
+    private int proModulesRow;
+    private int heroDividerRow;
+
+    // Mod Customization Categories
+    private int categoriesHeaderRow;
     private int appearanceRow;
     private int chatsRow;
+    private int generalRow;
+    private int sessionsRow;
     private int otherRow;
+    private int categoriesDividerRow;
 
-    private int categoryDividerRow;
-    private int aboutExteraDividerRow;
+    // Pixel System Settings
+    private int systemHeaderRow;
+    private int notificationsRow;
+    private int privacyRow;
+    private int storageRow;
+    private int foldersRow;
+    private int languageRow;
+    private int systemDividerRow;
 
-    private int infoHeaderRow;
-    private int aboutExteraRow;
-    private int sourceCodeRow;
-    private int channelRow;
-    private int groupRow;
-    private int crowdinRow;
+    // About & Honey Features
+    private int aboutHeaderRow;
+    private int honeyBadgesRow;
+    private int githubRow;
     private int infoDividerRow;
 
     @Override
@@ -92,7 +115,6 @@ public class MainPreferencesActivity extends BasePreferencesActivity {
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
                 FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) actionBarBackground.getLayoutParams();
                 layoutParams.height = ActionBar.getCurrentActionBarHeight() + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + AndroidUtilities.dp(3);
-
                 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             }
 
@@ -121,7 +143,6 @@ public class MainPreferencesActivity extends BasePreferencesActivity {
         });
 
         actionBarBackground = new View(context) {
-
             private final Paint paint = new Paint();
 
             @Override
@@ -191,54 +212,205 @@ public class MainPreferencesActivity extends BasePreferencesActivity {
     protected void updateRowsId() {
         super.updateRowsId();
 
-        aboutExteraRow = newRow();
-        aboutExteraDividerRow = newRow();
+        headerRow = newRow();
 
-        categoryHeaderRow = newRow();
-        honeyGramRow = newRow();
-        generalRow = newRow();
+        heroHeaderRow = newRow();
+        premiumHubRow = newRow();
+        phantomStarsRow = newRow();
+        proModulesRow = newRow();
+        heroDividerRow = newRow();
+
+        categoriesHeaderRow = newRow();
         appearanceRow = newRow();
         chatsRow = newRow();
+        generalRow = newRow();
+        sessionsRow = newRow();
         otherRow = newRow();
-        categoryDividerRow = newRow();
+        categoriesDividerRow = newRow();
 
-        infoHeaderRow = newRow();
-        channelRow = newRow();
-        groupRow = newRow();
-        crowdinRow = newRow();
-        sourceCodeRow = newRow();
+        systemHeaderRow = newRow();
+        notificationsRow = newRow();
+        privacyRow = newRow();
+        storageRow = newRow();
+        foldersRow = newRow();
+        languageRow = newRow();
+        systemDividerRow = newRow();
+
+        aboutHeaderRow = newRow();
+        honeyBadgesRow = newRow();
+        githubRow = newRow();
         infoDividerRow = newRow();
     }
 
     @Override
     protected void onItemClick(View view, int position, float x, float y) {
-        if (position == aboutExteraRow) {
-            if (!BuildVars.PM_BUILD)
-                (new UpdaterBottomSheet(getParentActivity(), this, false, null)).show();
-        } else if (position == honeyGramRow) {
+        if (position == premiumHubRow) {
+            boolean active = !HoneyConfig.isVisualPremium();
+            HoneyConfig.getPrefs().edit().putBoolean(HoneyConfig.KEY_VISUAL_PREMIUM, active).apply();
+            if (listAdapter != null) listAdapter.notifyDataSetChanged();
+            Toast.makeText(getParentActivity(), active ? "Telegram Premium: ACTIVE (Visual Spoofed)" : "Telegram Premium: Inactive", Toast.LENGTH_SHORT).show();
+        } else if (position == phantomStarsRow) {
+            showStarsDialog();
+        } else if (position == proModulesRow) {
             presentFragment(new HoneyGramPreferencesActivity());
-        } else if (position == sourceCodeRow) {
-            Browser.openUrl(getParentActivity(), "https://github.com/exteraSquad/exteraGram");
-        } else if (position == channelRow) {
-            MessagesController.getInstance(currentAccount).openByUserName(("exteraGram"), this, 1);
-        } else if (position == groupRow) {
-            MessagesController.getInstance(currentAccount).openByUserName(("exteraChat"), this, 1);
-        } else if (position == crowdinRow) {
-            Browser.openUrl(getParentActivity(), "https://crowdin.com/project/exteralocales");
         } else if (position == appearanceRow) {
             presentFragment(new AppearancePreferencesActivity());
         } else if (position == chatsRow) {
             presentFragment(new ChatsPreferencesActivity());
-        } else if (position == otherRow) {
-            presentFragment(new OtherPreferencesActivity());
         } else if (position == generalRow) {
             presentFragment(new GeneralPreferencesActivity());
+        } else if (position == sessionsRow) {
+            showSessionsMenu();
+        } else if (position == otherRow) {
+            presentFragment(new OtherPreferencesActivity());
+        } else if (position == notificationsRow) {
+            presentFragment(new NotificationsSettingsActivity());
+        } else if (position == privacyRow) {
+            presentFragment(new PrivacySettingsActivity());
+        } else if (position == storageRow) {
+            presentFragment(new DataSettingsActivity());
+        } else if (position == foldersRow) {
+            presentFragment(new FiltersSetupActivity());
+        } else if (position == languageRow) {
+            presentFragment(new LanguageSelectActivity());
+        } else if (position == honeyBadgesRow) {
+            boolean val = !HoneyConfig.isShowHoneyBadges();
+            HoneyConfig.getPrefs().edit().putBoolean(HoneyConfig.KEY_SHOW_HONEY_BADGES, val).apply();
+            if (view instanceof TextCheckCell) ((TextCheckCell) view).setChecked(val);
+        } else if (position == githubRow) {
+            Browser.openUrl(getParentActivity(), "https://github.com/nikeproo2/honeygram");
         }
+    }
+
+    private void showStarsDialog() {
+        if (getParentActivity() == null) return;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(LocaleController.getString("VisualStars", R.string.VisualStars));
+        final EditTextBoldCursor editText = new EditTextBoldCursor(getParentActivity());
+        editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+        editText.setText(String.valueOf(HoneyConfig.getVisualStarsCount()));
+        builder.setView(editText);
+        builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialog, which) -> {
+            try {
+                int count = Integer.parseInt(editText.getText().toString().trim());
+                HoneyConfig.getPrefs().edit().putInt(HoneyConfig.KEY_VISUAL_STARS_COUNT, count).apply();
+            } catch (Exception ignore) {}
+            if (listAdapter != null) listAdapter.notifyDataSetChanged();
+        });
+        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+        builder.show();
+    }
+
+    private void showSessionsMenu() {
+        if (getParentActivity() == null) return;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle("Сессии & Мультисервер");
+        String[] items = new String[]{
+                LocaleController.getString("ImportSession", R.string.ImportSession),
+                LocaleController.getString("ExportSession", R.string.ExportSession),
+                LocaleController.getString("ServerEnvironment", R.string.ServerEnvironment),
+                "Активные сеансы (Telegram Sessions)"
+        };
+        builder.setItems(items, (dialog, which) -> {
+            if (which == 0) {
+                showImportSessionDialog();
+            } else if (which == 1) {
+                showExportSessionDialog();
+            } else if (which == 2) {
+                showServerSelectorDialog();
+            } else if (which == 3) {
+                presentFragment(new SessionsActivity(0));
+            }
+        });
+        builder.show();
+    }
+
+    private void showImportSessionDialog() {
+        if (getParentActivity() == null) return;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(LocaleController.getString("ImportSession", R.string.ImportSession));
+        builder.setMessage(LocaleController.getString("ImportSessionNotice", R.string.ImportSessionNotice));
+        final EditTextBoldCursor editText = new EditTextBoldCursor(getParentActivity());
+        File defaultDir = new File(getParentActivity().getExternalFilesDir(null), "HoneyGram_Sessions");
+        editText.setHint(defaultDir.getAbsolutePath() + "/account.session");
+        builder.setView(editText);
+        builder.setPositiveButton(LocaleController.getString("ImportSession", R.string.ImportSession), (dialog, which) -> {
+            String path = editText.getText().toString().trim();
+            if (path.isEmpty()) {
+                Toast.makeText(getParentActivity(), "Please provide a valid .session file path", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            File file = new File(path);
+            SessionManager.importTelethonSession(file, new SessionManager.SessionCallback() {
+                @Override
+                public void onSuccess(SessionManager.SessionData sessionData) {
+                    AndroidUtilities.runOnUIThread(() -> {
+                        if (getParentActivity() == null) return;
+                        AlertDialog.Builder success = new AlertDialog.Builder(getParentActivity());
+                        success.setTitle(LocaleController.getString("SessionImportSuccess", R.string.SessionImportSuccess));
+                        success.setMessage("DC: " + sessionData.dcId + "\nUser ID: " + sessionData.userId + "\nAddress: " + sessionData.serverAddress);
+                        success.setPositiveButton("OK", null);
+                        success.show();
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    AndroidUtilities.runOnUIThread(() -> {
+                        if (getParentActivity() == null) return;
+                        Toast.makeText(getParentActivity(), "Import Error: " + error, Toast.LENGTH_LONG).show();
+                    });
+                }
+            });
+        });
+        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+        builder.show();
+    }
+
+    private void showExportSessionDialog() {
+        if (getParentActivity() == null) return;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(LocaleController.getString("ExportSession", R.string.ExportSession));
+        builder.setMessage("Export credentials for user ID " + UserConfig.getInstance(currentAccount).clientUserId + " to Telethon SQLite .session file?");
+        builder.setPositiveButton("Export", (dialog, which) -> {
+            int dcId = ConnectionsManager.getInstance(currentAccount).getCurrentDatacenterId();
+            long userId = UserConfig.getInstance(currentAccount).clientUserId;
+            SessionManager.SessionData data = new SessionManager.SessionData(dcId > 0 ? dcId : 2, "149.154.167.50", 443, new byte[256], userId);
+            File exported = SessionManager.exportActiveAccountToSession(getParentActivity(), currentAccount, data);
+            if (exported != null && exported.exists()) {
+                AlertDialog.Builder success = new AlertDialog.Builder(getParentActivity());
+                success.setTitle("Session Exported");
+                success.setMessage(LocaleController.formatString("ExportSessionSuccess", R.string.ExportSessionSuccess, exported.getAbsolutePath()));
+                success.setPositiveButton("OK", null);
+                success.show();
+            } else {
+                Toast.makeText(getParentActivity(), LocaleController.getString("ExportSessionFailed", R.string.ExportSessionFailed), Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+        builder.show();
+    }
+
+    private void showServerSelectorDialog() {
+        if (getParentActivity() == null) return;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(LocaleController.getString("ServerEnvironment", R.string.ServerEnvironment));
+        String[] items = new String[]{
+                LocaleController.getString("ServerProd", R.string.ServerProd),
+                LocaleController.getString("ServerTest", R.string.ServerTest),
+                LocaleController.getString("ServerCustom", R.string.ServerCustom)
+        };
+        builder.setItems(items, (dialog, which) -> {
+            ServerManager.switchEnvironment(getParentActivity(), which);
+            if (listAdapter != null) listAdapter.notifyDataSetChanged();
+            Toast.makeText(getParentActivity(), items[which], Toast.LENGTH_SHORT).show();
+        });
+        builder.show();
     }
 
     @Override
     protected String getTitle() {
-        return LocaleController.getString("Preferences", R.string.Preferences);
+        return LocaleController.getString("HoneyGramSettings", R.string.HoneyGramSettings);
     }
 
     @Override
@@ -268,51 +440,80 @@ public class MainPreferencesActivity extends BasePreferencesActivity {
                 case 1:
                     holder.itemView.setBackground(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     break;
-                case 2:
+                case 2: {
                     TextCell textCell = (TextCell) holder.itemView;
-                    if (position == honeyGramRow) {
-                        textCell.setTextAndValueAndIcon(LocaleController.getString("HoneyGramSettings", R.string.HoneyGramSettings), "🍯", R.drawable.msg_fave, true);
-                    } else if (position == generalRow) {
-                        textCell.setTextAndIcon(LocaleController.getString("General", R.string.General), R.drawable.msg_media, true);
+                    if (position == premiumHubRow) {
+                        String status = HoneyConfig.isVisualPremium() ? "АКТИВЕН (Visual)" : "Неактивен";
+                        textCell.setTextAndValueAndColorfulIcon("Telegram Premium Хаб", status, false, R.drawable.msg_fave, AMBER_PRIMARY, true);
+                    } else if (position == phantomStarsRow) {
+                        String stars = String.format(Locale.US, "%,d Stars", HoneyConfig.getVisualStarsCount());
+                        textCell.setTextAndValueAndColorfulIcon("Эмулятор Фантомных Stars", stars, false, R.drawable.photo_star_fill, AMBER_PRIMARY, true);
+                    } else if (position == proModulesRow) {
+                        String ghostStatus = HoneyConfig.isGhostMode() ? "Ghost: ВКЛ" : "Настроить";
+                        textCell.setTextAndValueAndColorfulIcon("Модули HoneyGram Pro", ghostStatus, false, R.drawable.msg2_secret, AMBER_PRIMARY, false);
                     } else if (position == appearanceRow) {
-                        textCell.setTextAndIcon(LocaleController.getString("Appearance", R.string.Appearance), R.drawable.msg_theme, true);
+                        textCell.setTextAndValueAndColorfulIcon(LocaleController.getString("Appearance", R.string.Appearance), "Monet & Стили", false, R.drawable.msg_theme, AMBER_PRIMARY, true);
                     } else if (position == chatsRow) {
-                        textCell.setTextAndIcon(LocaleController.getString("SearchAllChatsShort", R.string.SearchAllChatsShort), R.drawable.msg_discussion, true);
+                        textCell.setTextAndValueAndColorfulIcon("Кастомизация чатов", "Стикеры & Тапы", false, R.drawable.msg_discussion, AMBER_PRIMARY, true);
+                    } else if (position == generalRow) {
+                        textCell.setTextAndValueAndColorfulIcon(LocaleController.getString("General", R.string.General), "CameraX & Скорость", false, R.drawable.msg_media, AMBER_PRIMARY, true);
+                    } else if (position == sessionsRow) {
+                        textCell.setTextAndValueAndColorfulIcon("Сессии & Мультисервер", "Import/Export .session", false, R.drawable.msg2_devices, AMBER_PRIMARY, true);
                     } else if (position == otherRow) {
-                        textCell.setTextAndIcon(LocaleController.getString("LocalOther", R.string.LocalOther), R.drawable.msg_fave, false);
-                    } else if (position == channelRow) {
-                        textCell.setTextAndValueAndIcon(LocaleController.getString("Channel", R.string.Channel), "@exteraGram", R.drawable.msg_channel, true);
-                    } else if (position == groupRow) {
-                        textCell.setTextAndValueAndIcon(LocaleController.getString("SearchAllChatsShort", R.string.SearchAllChatsShort), "@exteraChat", R.drawable.msg_groups, true);
-                    } else if (position == crowdinRow) {
-                        textCell.setTextAndValueAndIcon(LocaleController.getString("Crowdin", R.string.Crowdin), "Crowdin", R.drawable.msg_translate, true);
-                    } else if (position == sourceCodeRow) {
-                        textCell.setTextAndValueAndIcon(LocaleController.getString("SourceCode", R.string.SourceCode), "GitHub", R.drawable.msg_delete, false);
+                        textCell.setTextAndColorfulIcon(LocaleController.getString("LocalOther", R.string.LocalOther), R.drawable.msg_fave, AMBER_PRIMARY, false);
+                    } else if (position == notificationsRow) {
+                        textCell.setTextAndColorfulIcon(LocaleController.getString("NotificationsAndSounds", R.string.NotificationsAndSounds), R.drawable.msg2_notifications, AMBER_PRIMARY, true);
+                    } else if (position == privacyRow) {
+                        textCell.setTextAndColorfulIcon(LocaleController.getString("PrivacySettings", R.string.PrivacySettings), R.drawable.msg2_secret, AMBER_PRIMARY, true);
+                    } else if (position == storageRow) {
+                        textCell.setTextAndColorfulIcon(LocaleController.getString("DataSettings", R.string.DataSettings), R.drawable.msg2_data, AMBER_PRIMARY, true);
+                    } else if (position == foldersRow) {
+                        textCell.setTextAndColorfulIcon(LocaleController.getString("Filters", R.string.Filters), R.drawable.msg2_folder, AMBER_PRIMARY, true);
+                    } else if (position == languageRow) {
+                        textCell.setTextAndValueAndColorfulIcon(LocaleController.getString("Language", R.string.Language), LocaleController.getCurrentLanguageName(), false, R.drawable.msg2_language, AMBER_PRIMARY, false);
+                    } else if (position == githubRow) {
+                        textCell.setTextAndValueAndColorfulIcon("GitHub Репозиторий", "nikeproo2/honeygram", false, R.drawable.msg_channel, AMBER_PRIMARY, false);
                     }
                     break;
-                case 3:
+                }
+                case 3: {
                     HeaderCell headerCell = (HeaderCell) holder.itemView;
-                    if (position == categoryHeaderRow) {
-                        headerCell.setText(LocaleController.getString("Categories", R.string.Categories));
-                    } else if (position == infoHeaderRow) {
-                        headerCell.setText(LocaleController.getString("Links", R.string.Links));
+                    if (position == heroHeaderRow) {
+                        headerCell.setText("HoneyGram Pro · Google Android 15");
+                    } else if (position == categoriesHeaderRow) {
+                        headerCell.setText("Кастомизация & Модули");
+                    } else if (position == systemHeaderRow) {
+                        headerCell.setText("Системные Настройки Pixel");
+                    } else if (position == aboutHeaderRow) {
+                        headerCell.setText("О моде HoneyGram");
                     }
                     break;
-                case 4:
+                }
+                case 4: {
                     headerSettingsCell = (HeaderSettingsCell) holder.itemView;
                     headerSettingsCell.setPadding(0, ActionBar.getCurrentActionBarHeight() + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) - AndroidUtilities.dp(40), 0, 0);
                     break;
+                }
+                case 5: {
+                    TextCheckCell checkCell = (TextCheckCell) holder.itemView;
+                    if (position == honeyBadgesRow) {
+                        checkCell.setTextAndCheck("Отображать бейджи Honey 🍯", HoneyConfig.isShowHoneyBadges(), true);
+                    }
+                    break;
+                }
             }
         }
 
         @Override
         public int getItemViewType(int position) {
-            if (position == categoryDividerRow || position == aboutExteraDividerRow || position == infoDividerRow) {
+            if (position == heroDividerRow || position == categoriesDividerRow || position == systemDividerRow || position == infoDividerRow) {
                 return 1;
-            } else if (position == infoHeaderRow || position == categoryHeaderRow) {
+            } else if (position == heroHeaderRow || position == categoriesHeaderRow || position == systemHeaderRow || position == aboutHeaderRow) {
                 return 3;
-            } else if (position == aboutExteraRow) {
+            } else if (position == headerRow) {
                 return 4;
+            } else if (position == honeyBadgesRow) {
+                return 5;
             }
             return 2;
         }

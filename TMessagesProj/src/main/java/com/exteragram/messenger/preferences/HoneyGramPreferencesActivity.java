@@ -117,7 +117,7 @@ public class HoneyGramPreferencesActivity extends BasePreferencesActivity {
 
     @Override
     protected String getTitle() {
-        return LocaleController.getString("HoneyGramSettings", R.string.HoneyGramSettings);
+        return "Модули HoneyGram Pro";
     }
 
     @Override

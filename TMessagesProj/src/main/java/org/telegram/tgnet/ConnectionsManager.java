@@ -188,7 +188,13 @@ public class ConnectionsManager extends BaseController {
         try {
             systemLangCode = LocaleController.getSystemLocaleStringIso639().toLowerCase();
             langCode = LocaleController.getLocaleStringIso639().toLowerCase();
-            deviceModel = Build.MANUFACTURER + Build.MODEL;
+            if (TextUtils.isEmpty(Build.MANUFACTURER)) {
+                deviceModel = Build.MODEL;
+            } else if (Build.MODEL.toLowerCase().startsWith(Build.MANUFACTURER.toLowerCase())) {
+                deviceModel = Build.MODEL;
+            } else {
+                deviceModel = Build.MANUFACTURER + " " + Build.MODEL;
+            }
             PackageInfo pInfo = ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);
             appVersion = pInfo.versionName + " (" + pInfo.versionCode + ")";
             if (BuildVars.DEBUG_PRIVATE_VERSION) {

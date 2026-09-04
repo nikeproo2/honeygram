@@ -12,11 +12,11 @@
 -->
 
 <resources>
-    <string name="Preferences">Настройки exteraGram</string>
+    <string name="Preferences">Настройки HoneyGram</string>
 
     <!-- Main Menu -->
     <string name="Links">Ссылки</string>
-    <string name="AboutExteraDescription">Экспериментальный Telegram-клиент, основанный на официальном исходном коде!</string>
+    <string name="AboutExteraDescription">Google Pixel Material You мод для Telegram на базе Android 15</string>
     <string name="Channel">Канал</string>
     <string name="Crowdin">Перевод</string>
     <string name="SourceCode">Исходный код</string>
@@ -200,7 +200,7 @@
 
     <!-- Other -->
     <string name="RestartRequired">Перезапустите приложение, чтобы изменения вступили в силу.</string>
-    <string name="ResetSettingsBulletin">Настройки **exteraGram** сброшены.</string>
+    <string name="ResetSettingsBulletin">Настройки **HoneyGram** сброшены.</string>
     <string name="UserNotFound">Пользователь с этим **ID** не найден.</string>
     <string name="PhotoCopied">Фото скопировано в буфер обмена.</string>
 
