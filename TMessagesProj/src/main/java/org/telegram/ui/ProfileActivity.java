@@ -2446,6 +2446,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     } else {
                         listView.setBottomGlowOffset(0);
                     }
+                    if (userId == getUserConfig().getClientUserId()) {
+                        paddingBottom += AndroidUtilities.dp(68);
+                    }
                     initialAnimationExtraHeight = paddingTop - actionBarHeight;
                     if (playProfileAnimation == 0) {
                         extraHeight = initialAnimationExtraHeight;
@@ -2472,6 +2475,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         listView.setBottomGlowOffset(AndroidUtilities.dp(48));
                     } else {
                         listView.setBottomGlowOffset(0);
+                    }
+                    if (userId == getUserConfig().getClientUserId()) {
+                        paddingBottom += AndroidUtilities.dp(68);
                     }
                     int currentPaddingTop = listView.getPaddingTop();
                     View view = null;
@@ -3772,7 +3778,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             listView.setPadding(0, AndroidUtilities.dp(88), 0, AndroidUtilities.dp(48));
             listView.setBottomGlowOffset(AndroidUtilities.dp(48));
         } else {
-            listView.setPadding(0, AndroidUtilities.dp(88), 0, 0);
+            listView.setPadding(0, AndroidUtilities.dp(88), 0, userId == getUserConfig().getClientUserId() ? AndroidUtilities.dp(68) : 0);
         }
 
         topView = new TopView(context);
@@ -10920,5 +10926,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
         }
 
+    }
+
+    public void scrollToTop() {
+        if (listView != null) {
+            listView.smoothScrollToPosition(0);
+        }
     }
 }

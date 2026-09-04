@@ -127,6 +127,12 @@ public abstract class BasePreferencesActivity extends BaseFragment {
         BulletinFactory.of(this).createErrorBulletin(LocaleController.getString("RestartRequired", R.string.RestartRequired), resourcesProvider).show();
     }
 
+    public void scrollToTop() {
+        if (listView != null) {
+            listView.smoothScrollToPosition(0);
+        }
+    }
+
     protected RecyclerListView getListView() {
         return listView;
     }

@@ -785,6 +785,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         actionBarLayout.setFragmentStack(mainFragmentsStack);
         actionBarLayout.setFragmentStackChangedListener(() -> {
             checkSystemBarColors(true, false);
+            updateBottomNavState();
         });
         actionBarLayout.setDelegate(this);
         Theme.loadWallpaper(true);
@@ -6207,6 +6208,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 rightActionBarLayout.animateThemedValues(theme, accentId, nightTheme, instant);
             }
         } else if (id == NotificationCenter.notificationsCountUpdated) {
+            updateBottomNavBadges();
             if (sideMenu != null) {
                 Integer accountNum = (Integer) args[0];
                 int count = sideMenu.getChildCount();
@@ -7450,7 +7452,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             return false;
         }
         if (fragment instanceof ContactsActivity) {
-            return true;
+            Bundle args = fragment.getArguments();
+            boolean isPicker = args != null && (args.getBoolean("destroyAfterSelect", false) || args.getBoolean("returnAsResult", false) || args.getLong("chat_id", 0) != 0 || args.getLong("channelId", 0) != 0);
+            return !isPicker;
         }
         if (fragment instanceof HoneyGramPreferencesActivity || fragment instanceof MainPreferencesActivity) {
             return true;
@@ -7470,8 +7474,23 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         return fragment instanceof DialogsActivity || isSubTabFragment(fragment);
     }
 
+    public void updateBottomNavBadges() {
+        if (honeyBottomNav == null) {
+            return;
+        }
+        try {
+            int unread = NotificationsController.getInstance(currentAccount).getTotalUnreadCount();
+            honeyBottomNav.setBadge(HoneyBottomNavigationView.TAB_CHATS, unread > 0);
+        } catch (Throwable ignore) {}
+    }
+
     public void updateBottomNavState() {
         if (honeyBottomNav == null || actionBarLayout == null) {
+            return;
+        }
+        List<BaseFragment> stack = actionBarLayout.getFragmentStack();
+        if (stack == null || stack.isEmpty()) {
+            honeyBottomNav.hide(false);
             return;
         }
         BaseFragment lastFragment = actionBarLayout.getLastFragment();
@@ -7480,19 +7499,19 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             return;
         }
 
-        if (lastFragment instanceof DialogsActivity) {
+        updateBottomNavBadges();
+
+        if (stack.size() == 1 && lastFragment instanceof DialogsActivity) {
             honeyBottomNav.setSelectedTab(HoneyBottomNavigationView.TAB_CHATS, false);
             honeyBottomNav.show(true);
-        } else if (lastFragment instanceof ContactsActivity) {
-            honeyBottomNav.setSelectedTab(HoneyBottomNavigationView.TAB_CONTACTS, false);
-            honeyBottomNav.show(true);
-        } else if (lastFragment instanceof HoneyGramPreferencesActivity || lastFragment instanceof MainPreferencesActivity) {
-            honeyBottomNav.setSelectedTab(HoneyBottomNavigationView.TAB_SETTINGS, false);
-            honeyBottomNav.show(true);
-        } else if (lastFragment instanceof ProfileActivity) {
-            Bundle args = lastFragment.getArguments();
-            long uid = args != null ? args.getLong("user_id", 0) : 0;
-            if (uid == 0 || uid == UserConfig.getInstance(currentAccount).getClientUserId()) {
+        } else if (stack.size() == 2 && stack.get(0) instanceof DialogsActivity && isSubTabFragment(lastFragment)) {
+            if (lastFragment instanceof ContactsActivity) {
+                honeyBottomNav.setSelectedTab(HoneyBottomNavigationView.TAB_CONTACTS, false);
+                honeyBottomNav.show(true);
+            } else if (lastFragment instanceof HoneyGramPreferencesActivity || lastFragment instanceof MainPreferencesActivity) {
+                honeyBottomNav.setSelectedTab(HoneyBottomNavigationView.TAB_SETTINGS, false);
+                honeyBottomNav.show(true);
+            } else if (lastFragment instanceof ProfileActivity) {
                 honeyBottomNav.setSelectedTab(HoneyBottomNavigationView.TAB_PROFILE, false);
                 honeyBottomNav.show(true);
             } else {
@@ -7521,12 +7540,14 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 if (reselected) {
                     if (stack.size() > 1) {
                         while (stack.size() > 1) {
-                            actionBarLayout.removeFragmentFromStack(stack.get(stack.size() - 1));
+                            actionBarLayout.removeFragmentFromStack(stack.get(stack.size() - 1), true);
                         }
+                    } else if (lastFragment instanceof DialogsActivity) {
+                        ((DialogsActivity) lastFragment).scrollToTop();
                     }
                 } else {
                     while (stack.size() > 1) {
-                        actionBarLayout.removeFragmentFromStack(stack.get(stack.size() - 1));
+                        actionBarLayout.removeFragmentFromStack(stack.get(stack.size() - 1), true);
                     }
                 }
                 break;
@@ -7538,7 +7559,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 boolean removePrev = isSubTabFragment(lastFragment);
                 if (!removePrev && stack.size() > 1) {
                     while (stack.size() > 1) {
-                        actionBarLayout.removeFragmentFromStack(stack.get(stack.size() - 1));
+                        actionBarLayout.removeFragmentFromStack(stack.get(stack.size() - 1), true);
                     }
                     removePrev = false;
                 }
@@ -7552,7 +7573,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 boolean removePrev = isSubTabFragment(lastFragment);
                 if (!removePrev && stack.size() > 1) {
                     while (stack.size() > 1) {
-                        actionBarLayout.removeFragmentFromStack(stack.get(stack.size() - 1));
+                        actionBarLayout.removeFragmentFromStack(stack.get(stack.size() - 1), true);
                     }
                     removePrev = false;
                 }
@@ -7570,7 +7591,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 boolean removePrev = isSubTabFragment(lastFragment);
                 if (!removePrev && stack.size() > 1) {
                     while (stack.size() > 1) {
-                        actionBarLayout.removeFragmentFromStack(stack.get(stack.size() - 1));
+                        actionBarLayout.removeFragmentFromStack(stack.get(stack.size() - 1), true);
                     }
                     removePrev = false;
                 }

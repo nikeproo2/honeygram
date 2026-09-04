@@ -1287,4 +1287,10 @@ public class ContactsActivity extends BaseFragment implements NotificationCenter
 
         return themeDescriptions;
     }
+
+    public void scrollToTop() {
+        if (listView != null) {
+            listView.smoothScrollToPosition(0);
+        }
+    }
 }

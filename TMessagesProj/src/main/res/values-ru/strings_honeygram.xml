@@ -63,7 +63,7 @@
     <string name="TabSettings">Настройки</string>
     <string name="TabProfile">Профиль</string>
     <string name="ExportSessionSuccess">Сессия аккаунта экспортирована в: %1$s</string>
-    <string name="ExportSessionFailed">Не удалось экспортировать сессию: %1$s</string>
+    <string name="ExportSessionFailed">Не удалось экспортировать сессию</string>
     <string name="ImportSessionNotice">Выберите базу данных Telethon (.session) или папку tdata для импорта авторизации.</string>
     <string name="GhostModePill">Призрак</string>
     <string name="GhostModeActiveStatus">Ghost активен</string>

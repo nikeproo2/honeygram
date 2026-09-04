@@ -7,8 +7,10 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.view.Gravity;
 import android.view.View;
+import android.view.WindowInsets;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -56,7 +58,8 @@ public class HoneyBottomNavigationView extends FrameLayout {
 
     private static class TabItem {
         FrameLayout container;
-        FrameLayout indicatorPill;
+        FrameLayout iconContainer;
+        View indicatorPill;
         GradientDrawable pillDrawable;
         ImageView iconView;
         View badgeDot;
@@ -67,13 +70,16 @@ public class HoneyBottomNavigationView extends FrameLayout {
         super(context);
         setBackgroundColor(MONET_SURFACE);
         setClickable(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            setFitsSystemWindows(true);
+        }
 
         // Top 1dp subtle divider line
         topDivider = new View(context);
         topDivider.setBackgroundColor(MONET_DIVIDER);
         addView(topDivider, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 1, Gravity.TOP));
 
-        // Horizontal tabs container
+        // Horizontal tabs container (64dp height)
         tabsContainer = new LinearLayout(context);
         tabsContainer.setOrientation(LinearLayout.HORIZONTAL);
         tabsContainer.setGravity(Gravity.CENTER_VERTICAL);
@@ -105,31 +111,35 @@ public class HoneyBottomNavigationView extends FrameLayout {
         itemContent.setGravity(Gravity.CENTER);
         item.container.addView(itemContent, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
-        // 1. M3 Pill Active Indicator (58dp x 30dp)
-        item.indicatorPill = new FrameLayout(context);
+        // Icon + Pill Container (58dp x 30dp)
+        item.iconContainer = new FrameLayout(context);
+        itemContent.addView(item.iconContainer, LayoutHelper.createLinear(58, 30, Gravity.CENTER_HORIZONTAL, 0, 4, 0, 0));
+
+        // 1. M3 Pill Active Indicator Background (58dp x 30dp)
+        item.indicatorPill = new View(context);
         item.pillDrawable = new GradientDrawable();
         item.pillDrawable.setShape(GradientDrawable.RECTANGLE);
         item.pillDrawable.setCornerRadius(AndroidUtilities.dp(15));
         item.pillDrawable.setColor(MONET_CONTAINER);
         item.indicatorPill.setBackground(item.pillDrawable);
-        itemContent.addView(item.indicatorPill, LayoutHelper.createLinear(58, 30, Gravity.CENTER_HORIZONTAL, 0, 4, 0, 0));
+        item.iconContainer.addView(item.indicatorPill, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
-        // Icon inside Pill (22dp)
+        // 2. Tab Icon (22dp) - ALWAYS VISIBLE, sits above pill background
         item.iconView = new ImageView(context);
         item.iconView.setImageResource(iconResId);
         item.iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        item.indicatorPill.addView(item.iconView, LayoutHelper.createFrame(22, 22, Gravity.CENTER));
+        item.iconContainer.addView(item.iconView, LayoutHelper.createFrame(22, 22, Gravity.CENTER));
 
-        // Badge Dot on Pill
+        // 3. Badge Dot on Icon Container - stays visible even when unselected
         item.badgeDot = new View(context);
         GradientDrawable badgeDrawable = new GradientDrawable();
         badgeDrawable.setShape(GradientDrawable.OVAL);
         badgeDrawable.setColor(MONET_PRIMARY);
         item.badgeDot.setBackground(badgeDrawable);
         item.badgeDot.setVisibility(View.GONE);
-        item.indicatorPill.addView(item.badgeDot, LayoutHelper.createFrame(6, 6, Gravity.TOP | Gravity.RIGHT, 0, 3, 10, 0));
+        item.iconContainer.addView(item.badgeDot, LayoutHelper.createFrame(6, 6, Gravity.TOP | Gravity.RIGHT, 0, 3, 10, 0));
 
-        // 2. Tab Label Text (11sp)
+        // 4. Tab Label Text (11sp)
         item.labelView = new TextView(context);
         item.labelView.setText(title);
         item.labelView.setTextSize(11);
@@ -152,6 +162,21 @@ public class HoneyBottomNavigationView extends FrameLayout {
         tabItems[index] = item;
     }
 
+    @Override
+    public WindowInsets onApplyWindowInsets(WindowInsets insets) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            int bottom = insets.getSystemWindowInsetBottom();
+            if (bottom > AndroidUtilities.dp(100)) {
+                bottom = 0; // Likely keyboard, do not inflate bottom bar padding
+            }
+            if (getPaddingBottom() != bottom) {
+                setPadding(0, 0, 0, bottom);
+                requestLayout();
+            }
+        }
+        return insets;
+    }
+
     public void setOnTabSelectedListener(OnTabSelectedListener listener) {
         this.listener = listener;
     }
@@ -169,7 +194,7 @@ public class HoneyBottomNavigationView extends FrameLayout {
         this.selectedTab = tabIndex;
 
         for (int i = 0; i < TAB_COUNT; i++) {
-            TabItem item = tabItems[i];
+            final TabItem item = tabItems[i];
             if (item == null) continue;
             boolean isSelected = (i == tabIndex);
 
@@ -179,9 +204,10 @@ public class HoneyBottomNavigationView extends FrameLayout {
                 item.labelView.setAlpha(1.0f);
 
                 if (animate) {
+                    item.indicatorPill.animate().cancel();
                     item.indicatorPill.setAlpha(0.0f);
-                    item.indicatorPill.setScaleX(0.85f);
-                    item.indicatorPill.setScaleY(0.85f);
+                    item.indicatorPill.setScaleX(0.7f);
+                    item.indicatorPill.setScaleY(0.7f);
                     item.indicatorPill.setVisibility(View.VISIBLE);
                     item.indicatorPill.animate()
                             .alpha(1.0f)
@@ -189,12 +215,13 @@ public class HoneyBottomNavigationView extends FrameLayout {
                             .scaleY(1.0f)
                             .setDuration(200)
                             .setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT)
+                            .setListener(null)
                             .start();
                 } else {
+                    item.indicatorPill.setVisibility(View.VISIBLE);
                     item.indicatorPill.setAlpha(1.0f);
                     item.indicatorPill.setScaleX(1.0f);
                     item.indicatorPill.setScaleY(1.0f);
-                    item.indicatorPill.setVisibility(View.VISIBLE);
                 }
             } else {
                 item.iconView.setColorFilter(new PorterDuffColorFilter(MONET_UNSELECTED, PorterDuff.Mode.SRC_IN));
@@ -202,12 +229,13 @@ public class HoneyBottomNavigationView extends FrameLayout {
                 item.labelView.setAlpha(0.85f);
 
                 if (animate && item.indicatorPill.getVisibility() == View.VISIBLE) {
+                    item.indicatorPill.animate().cancel();
                     item.indicatorPill.animate()
                             .alpha(0.0f)
-                            .scaleX(0.85f)
-                            .scaleY(0.85f)
+                            .scaleX(0.7f)
+                            .scaleY(0.7f)
                             .setDuration(150)
-                            .setInterpolator(CubicBezierInterpolator.EASE_IN_QUINT)
+                            .setInterpolator(CubicBezierInterpolator.EASE_IN)
                             .setListener(new AnimatorListenerAdapter() {
                                 @Override
                                 public void onAnimationEnd(Animator animation) {
@@ -259,7 +287,7 @@ public class HoneyBottomNavigationView extends FrameLayout {
                     .translationY(targetY)
                     .alpha(0.0f)
                     .setDuration(180)
-                    .setInterpolator(CubicBezierInterpolator.EASE_IN_QUINT)
+                    .setInterpolator(CubicBezierInterpolator.EASE_IN)
                     .setListener(new AnimatorListenerAdapter() {
                         @Override
                         public void onAnimationEnd(Animator animation) {

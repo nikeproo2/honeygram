@@ -63,7 +63,7 @@
     <string name="TabSettings">Settings</string>
     <string name="TabProfile">Profile</string>
     <string name="ExportSessionSuccess">Account session exported to: %1$s</string>
-    <string name="ExportSessionFailed">Failed to export session: %1$s</string>
+    <string name="ExportSessionFailed">Failed to export session</string>
     <string name="ImportSessionNotice">Select Telethon (.session) SQLite database or Telegram Desktop tdata folder to import auth credentials.</string>
     <string name="GhostModePill">Ghost</string>
     <string name="GhostModeActiveStatus">Ghost active</string>

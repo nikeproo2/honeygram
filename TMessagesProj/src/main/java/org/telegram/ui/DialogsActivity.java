@@ -2622,6 +2622,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 if (downloadsItem != null && downloadsItemVisible) {
                     downloadsItem.setVisibility(View.GONE);
                 }
+                if (ghostItem != null) {
+                    ghostItem.setVisibility(View.GONE);
+                }
+                if (getParentActivity() instanceof LaunchActivity) {
+                    LaunchActivity la = (LaunchActivity) getParentActivity();
+                    if (la.getHoneyBottomNav() != null) {
+                        la.getHoneyBottomNav().hide(true);
+                    }
+                }
                 if (viewPages[0] != null) {
                     if (searchString != null) {
                         viewPages[0].listView.hide();
@@ -2652,6 +2661,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 if (downloadsItem != null && downloadsItemVisible) {
                     downloadsItem.setVisibility(View.VISIBLE);
                 }
+                if (ghostItem != null) {
+                    ghostItem.setVisibility(View.VISIBLE);
+                }
                 if (searchString != null) {
                     finishFragment();
                     return false;
@@ -2663,6 +2675,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             public void onSearchCollapse() {
                 searching = false;
                 searchWas = false;
+                if (ghostItem != null) {
+                    ghostItem.setVisibility(View.VISIBLE);
+                }
+                if (getParentActivity() instanceof LaunchActivity) {
+                    LaunchActivity la = (LaunchActivity) getParentActivity();
+                    la.updateBottomNavState();
+                }
                 if (viewPages[0] != null) {
                     viewPages[0].listView.setEmptyView(folderId == 0 ? viewPages[0].progressView : null);
                     if (!onlySelect) {
@@ -7890,7 +7909,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
-    private void scrollToTop() {
+    public void scrollToTop() {
+        if (viewPages == null || viewPages[0] == null || viewPages[0].layoutManager == null || viewPages[0].listView == null) {
+            return;
+        }
         int scrollDistance = viewPages[0].layoutManager.findFirstVisibleItemPosition() * AndroidUtilities.dp(SharedConfig.useThreeLinesLayout ? 78 : 72);
         int position = viewPages[0].dialogsType == 0 && hasHiddenArchive() && viewPages[0].archivePullViewState == ARCHIVE_ITEM_STATE_HIDDEN ? 1 : 0;
         RecyclerView.ItemAnimator animator = viewPages[0].listView.getItemAnimator();

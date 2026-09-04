@@ -250,7 +250,7 @@ public class HoneyGramPreferencesActivity extends BasePreferencesActivity {
             if (exported != null && exported.exists()) {
                 AlertDialog.Builder success = new AlertDialog.Builder(getParentActivity());
                 success.setTitle("Session Exported");
-                success.setMessage(String.format(LocaleController.getString("ExportSessionSuccess", R.string.ExportSessionSuccess), exported.getAbsolutePath()));
+                success.setMessage(LocaleController.formatString("ExportSessionSuccess", R.string.ExportSessionSuccess, exported.getAbsolutePath()));
                 success.setPositiveButton("OK", null);
                 success.show();
             } else {
