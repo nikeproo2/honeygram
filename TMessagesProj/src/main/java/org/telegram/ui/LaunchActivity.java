@@ -89,7 +89,12 @@ import com.exteragram.messenger.ExteraResources;
 import com.exteragram.messenger.utils.ChatUtils;
 import com.exteragram.messenger.utils.MonetUtils;
 import com.exteragram.messenger.preferences.MainPreferencesActivity;
+import com.exteragram.messenger.preferences.HoneyGramPreferencesActivity;
 import com.exteragram.messenger.utils.UpdaterUtils;
+import org.telegram.honeygram.HoneyConfig;
+import org.telegram.honeygram.privacy.GhostController;
+import org.telegram.honeygram.privacy.RestrictionBypass;
+import org.telegram.honeygram.ui.HoneyBottomNavigationView;
 import com.google.android.gms.common.api.Status;
 import com.google.firebase.appindexing.Action;
 import com.google.firebase.appindexing.FirebaseUserActions;
@@ -229,6 +234,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     public static Runnable onResumeStaticCallback;
 
     private static final String EXTRA_ACTION_TOKEN = "actions.fulfillment.extra.ACTION_TOKEN";
+    private HoneyBottomNavigationView honeyBottomNav;
 
     private boolean finished;
     private String videoPath;
@@ -370,6 +376,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 FileLog.e(e);
             }
         }
+        RestrictionBypass.applyScreenshotPolicy(getWindow());
 
         super.onCreate(savedInstanceState);
         if (Build.VERSION.SDK_INT >= 24) {
@@ -464,6 +471,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
         });
         setupActionBarLayout();
+        honeyBottomNav = new HoneyBottomNavigationView(this);
+        honeyBottomNav.setOnTabSelectedListener((tabIndex, reselected) -> onBottomNavTabSelected(tabIndex, reselected));
+        drawerLayoutContainer.addView(honeyBottomNav, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM));
         sideMenuContainer = new FrameLayout(this);
         sideMenu = new RecyclerListView(this) {
             @Override
@@ -966,6 +976,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             ArticleViewer.getInstance().updateThemeColors(progress);
         }
         drawerLayoutContainer.setBehindKeyboardColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+        if (honeyBottomNav != null) {
+            honeyBottomNav.updateColors();
+        }
         if (PhotoViewer.hasInstance()) {
             PhotoViewer.getInstance().updateColors();
         }
@@ -5737,6 +5750,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         });
         checkFreeDiscSpace(0);
         MediaController.checkGallery();
+        RestrictionBypass.applyScreenshotPolicy(getWindow());
+        updateBottomNavState();
         onPasscodeResume();
         if (passcodeView == null || passcodeView.getVisibility() != View.VISIBLE) {
             actionBarLayout.onResume();
@@ -6993,6 +7008,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         } else {
             actionBarLayout.onBackPressed();
         }
+        AndroidUtilities.runOnUIThread(this::updateBottomNavState);
     }
 
     @Override
@@ -7254,6 +7270,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
             drawerLayoutContainer.setAllowOpenDrawer(allow, false);
         }
+        AndroidUtilities.runOnUIThread(this::updateBottomNavState);
         return true;
     }
 
@@ -7366,6 +7383,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 drawerLayoutContainer.setAllowOpenDrawer(true, false);
             }
         }
+        AndroidUtilities.runOnUIThread(this::updateBottomNavState);
         return true;
     }
 
@@ -7423,6 +7441,148 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         });
     }
     
+    public HoneyBottomNavigationView getHoneyBottomNav() {
+        return honeyBottomNav;
+    }
+
+    public boolean isSubTabFragment(BaseFragment fragment) {
+        if (fragment == null) {
+            return false;
+        }
+        if (fragment instanceof ContactsActivity) {
+            return true;
+        }
+        if (fragment instanceof HoneyGramPreferencesActivity || fragment instanceof MainPreferencesActivity) {
+            return true;
+        }
+        if (fragment instanceof ProfileActivity) {
+            Bundle args = fragment.getArguments();
+            long uid = args != null ? args.getLong("user_id", 0) : 0;
+            return uid == 0 || uid == UserConfig.getInstance(currentAccount).getClientUserId();
+        }
+        return false;
+    }
+
+    public boolean isTabFragment(BaseFragment fragment) {
+        if (fragment == null) {
+            return false;
+        }
+        return fragment instanceof DialogsActivity || isSubTabFragment(fragment);
+    }
+
+    public void updateBottomNavState() {
+        if (honeyBottomNav == null || actionBarLayout == null) {
+            return;
+        }
+        BaseFragment lastFragment = actionBarLayout.getLastFragment();
+        if (lastFragment == null) {
+            honeyBottomNav.hide(false);
+            return;
+        }
+
+        if (lastFragment instanceof DialogsActivity) {
+            honeyBottomNav.setSelectedTab(HoneyBottomNavigationView.TAB_CHATS, false);
+            honeyBottomNav.show(true);
+        } else if (lastFragment instanceof ContactsActivity) {
+            honeyBottomNav.setSelectedTab(HoneyBottomNavigationView.TAB_CONTACTS, false);
+            honeyBottomNav.show(true);
+        } else if (lastFragment instanceof HoneyGramPreferencesActivity || lastFragment instanceof MainPreferencesActivity) {
+            honeyBottomNav.setSelectedTab(HoneyBottomNavigationView.TAB_SETTINGS, false);
+            honeyBottomNav.show(true);
+        } else if (lastFragment instanceof ProfileActivity) {
+            Bundle args = lastFragment.getArguments();
+            long uid = args != null ? args.getLong("user_id", 0) : 0;
+            if (uid == 0 || uid == UserConfig.getInstance(currentAccount).getClientUserId()) {
+                honeyBottomNav.setSelectedTab(HoneyBottomNavigationView.TAB_PROFILE, false);
+                honeyBottomNav.show(true);
+            } else {
+                honeyBottomNav.hide(true);
+            }
+        } else {
+            honeyBottomNav.hide(true);
+        }
+    }
+
+    public void onBottomNavTabSelected(int tabIndex, boolean reselected) {
+        if (actionBarLayout == null) {
+            return;
+        }
+        if (drawerLayoutContainer != null && drawerLayoutContainer.isDrawerOpened()) {
+            drawerLayoutContainer.closeDrawer(false);
+        }
+        List<BaseFragment> stack = actionBarLayout.getFragmentStack();
+        if (stack == null || stack.isEmpty()) {
+            return;
+        }
+        BaseFragment lastFragment = actionBarLayout.getLastFragment();
+
+        switch (tabIndex) {
+            case HoneyBottomNavigationView.TAB_CHATS: {
+                if (reselected) {
+                    if (stack.size() > 1) {
+                        while (stack.size() > 1) {
+                            actionBarLayout.removeFragmentFromStack(stack.get(stack.size() - 1));
+                        }
+                    }
+                } else {
+                    while (stack.size() > 1) {
+                        actionBarLayout.removeFragmentFromStack(stack.get(stack.size() - 1));
+                    }
+                }
+                break;
+            }
+            case HoneyBottomNavigationView.TAB_CONTACTS: {
+                if (reselected && lastFragment instanceof ContactsActivity) {
+                    return;
+                }
+                boolean removePrev = isSubTabFragment(lastFragment);
+                if (!removePrev && stack.size() > 1) {
+                    while (stack.size() > 1) {
+                        actionBarLayout.removeFragmentFromStack(stack.get(stack.size() - 1));
+                    }
+                    removePrev = false;
+                }
+                presentFragment(new ContactsActivity(null), removePrev, true);
+                break;
+            }
+            case HoneyBottomNavigationView.TAB_SETTINGS: {
+                if (reselected && (lastFragment instanceof HoneyGramPreferencesActivity || lastFragment instanceof MainPreferencesActivity)) {
+                    return;
+                }
+                boolean removePrev = isSubTabFragment(lastFragment);
+                if (!removePrev && stack.size() > 1) {
+                    while (stack.size() > 1) {
+                        actionBarLayout.removeFragmentFromStack(stack.get(stack.size() - 1));
+                    }
+                    removePrev = false;
+                }
+                presentFragment(new HoneyGramPreferencesActivity(), removePrev, true);
+                break;
+            }
+            case HoneyBottomNavigationView.TAB_PROFILE: {
+                if (reselected && lastFragment instanceof ProfileActivity) {
+                    Bundle args = lastFragment.getArguments();
+                    long uid = args != null ? args.getLong("user_id", 0) : 0;
+                    if (uid == 0 || uid == UserConfig.getInstance(currentAccount).getClientUserId()) {
+                        return;
+                    }
+                }
+                boolean removePrev = isSubTabFragment(lastFragment);
+                if (!removePrev && stack.size() > 1) {
+                    while (stack.size() > 1) {
+                        actionBarLayout.removeFragmentFromStack(stack.get(stack.size() - 1));
+                    }
+                    removePrev = false;
+                }
+                Bundle profileArgs = new Bundle();
+                profileArgs.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
+                presentFragment(new ProfileActivity(profileArgs), removePrev, true);
+                break;
+            }
+        }
+        AndroidUtilities.runOnUIThread(this::updateBottomNavState);
+    }
+
     public static BaseFragment getLastFragment() {
         if (instance != null && instance.getActionBarLayout() != null) {
             return instance.getActionBarLayout().getLastFragment();

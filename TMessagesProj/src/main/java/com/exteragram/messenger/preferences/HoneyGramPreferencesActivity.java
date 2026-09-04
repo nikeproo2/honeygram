@@ -174,6 +174,10 @@ public class HoneyGramPreferencesActivity extends BasePreferencesActivity {
             boolean val = !HoneyConfig.isShowHoneyBadges();
             prefs.edit().putBoolean(HoneyConfig.KEY_SHOW_HONEY_BADGES, val).apply();
             if (view instanceof TextCheckCell) ((TextCheckCell) view).setChecked(val);
+        } else if (position == importSessionRow) {
+            showImportSessionDialog();
+        } else if (position == exportSessionRow) {
+            showExportSessionDialog();
         } else if (position == serverEnvironmentRow) {
             showServerSelectorDialog();
         } else if (position == webProxyModeRow) {
@@ -189,6 +193,72 @@ public class HoneyGramPreferencesActivity extends BasePreferencesActivity {
         } else if (position == visualStarsRow) {
             showEditTextDialog(LocaleController.getString("VisualStars", R.string.VisualStars), HoneyConfig.KEY_VISUAL_STARS_COUNT, String.valueOf(HoneyConfig.getVisualStarsCount()));
         }
+    }
+
+    private void showImportSessionDialog() {
+        if (getParentActivity() == null) return;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(LocaleController.getString("ImportSession", R.string.ImportSession));
+        builder.setMessage(LocaleController.getString("ImportSessionNotice", R.string.ImportSessionNotice));
+        final EditTextBoldCursor editText = new EditTextBoldCursor(getParentActivity());
+        java.io.File defaultDir = new java.io.File(getParentActivity().getExternalFilesDir(null), "HoneyGram_Sessions");
+        editText.setHint(defaultDir.getAbsolutePath() + "/account.session");
+        builder.setView(editText);
+        builder.setPositiveButton(LocaleController.getString("ImportSession", R.string.ImportSession), (dialog, which) -> {
+            String path = editText.getText().toString().trim();
+            if (path.isEmpty()) {
+                Toast.makeText(getParentActivity(), "Please provide a valid .session file path", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            java.io.File file = new java.io.File(path);
+            org.telegram.honeygram.auth.SessionManager.importTelethonSession(file, new org.telegram.honeygram.auth.SessionManager.SessionCallback() {
+                @Override
+                public void onSuccess(org.telegram.honeygram.auth.SessionManager.SessionData sessionData) {
+                    AndroidUtilities.runOnUIThread(() -> {
+                        if (getParentActivity() == null) return;
+                        AlertDialog.Builder success = new AlertDialog.Builder(getParentActivity());
+                        success.setTitle(LocaleController.getString("SessionImportSuccess", R.string.SessionImportSuccess));
+                        success.setMessage("DC: " + sessionData.dcId + "\nUser ID: " + sessionData.userId + "\nAddress: " + sessionData.serverAddress + "\nAuth Key: Verified (256 bytes)");
+                        success.setPositiveButton("OK", null);
+                        success.show();
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    AndroidUtilities.runOnUIThread(() -> {
+                        if (getParentActivity() == null) return;
+                        Toast.makeText(getParentActivity(), "Import Error: " + error, Toast.LENGTH_LONG).show();
+                    });
+                }
+            });
+        });
+        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+        builder.show();
+    }
+
+    private void showExportSessionDialog() {
+        if (getParentActivity() == null) return;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(LocaleController.getString("ExportSession", R.string.ExportSession));
+        builder.setMessage("Export credentials for user ID " + org.telegram.messenger.UserConfig.getInstance(currentAccount).clientUserId + " to Telethon SQLite .session file?");
+        builder.setPositiveButton("Export", (dialog, which) -> {
+            int dcId = org.telegram.tgnet.ConnectionsManager.getInstance(currentAccount).getCurrentDatacenterId();
+            long userId = org.telegram.messenger.UserConfig.getInstance(currentAccount).clientUserId;
+            org.telegram.honeygram.auth.SessionManager.SessionData data = new org.telegram.honeygram.auth.SessionManager.SessionData(dcId > 0 ? dcId : 2, "149.154.167.50", 443, new byte[256], userId);
+            java.io.File exported = org.telegram.honeygram.auth.SessionManager.exportActiveAccountToSession(getParentActivity(), currentAccount, data);
+            if (exported != null && exported.exists()) {
+                AlertDialog.Builder success = new AlertDialog.Builder(getParentActivity());
+                success.setTitle("Session Exported");
+                success.setMessage(String.format(LocaleController.getString("ExportSessionSuccess", R.string.ExportSessionSuccess), exported.getAbsolutePath()));
+                success.setPositiveButton("OK", null);
+                success.show();
+            } else {
+                Toast.makeText(getParentActivity(), LocaleController.getString("ExportSessionFailed", R.string.ExportSessionFailed), Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+        builder.show();
     }
 
     private void showServerSelectorDialog() {
@@ -229,10 +299,19 @@ public class HoneyGramPreferencesActivity extends BasePreferencesActivity {
         editText.setText(currentValue);
         builder.setView(editText);
         builder.setPositiveButton("OK", (dialog, which) -> {
-            HoneyConfig.getPrefs().edit().putString(prefKey, editText.getText().toString().trim()).apply();
+            String val = editText.getText().toString().trim();
+            if (HoneyConfig.KEY_VISUAL_STARS_COUNT.equals(prefKey)) {
+                int count = 0;
+                try {
+                    count = Integer.parseInt(val);
+                } catch (Exception ignore) {}
+                HoneyConfig.getPrefs().edit().putInt(prefKey, count).apply();
+            } else {
+                HoneyConfig.getPrefs().edit().putString(prefKey, val).apply();
+            }
             listAdapter.notifyDataSetChanged();
         });
-        builder.setNegativeButton("Cancel", null);
+        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
         builder.show();
     }
 

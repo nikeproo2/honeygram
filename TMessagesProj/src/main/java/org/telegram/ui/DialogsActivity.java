@@ -298,6 +298,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private boolean passcodeItemVisible;
     private boolean downloadsItemVisible;
     private ActionBarMenuItem proxyItem;
+    private ActionBarMenuItem ghostItem;
     private boolean proxyItemVisible;
     private ActionBarMenuItem searchItem;
     private ActionBarMenuItem speedItem;
@@ -2578,6 +2579,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
             updatePasscodeButton();
             updateProxyButton(false, false);
+
+            ghostItem = menu.addItem(100, R.drawable.ghost);
+            ghostItem.setContentDescription(LocaleController.getString("GhostMode", R.string.GhostMode));
+            updateGhostButton();
         }
         searchItem = menu.addItem(0, R.drawable.ic_ab_search).setIsSearchField(true, false).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
             boolean isSpeedItemCreated = false;
@@ -3144,6 +3149,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             viewPage.listView.setAccessibilityEnabled(false);
             viewPage.listView.setAnimateEmptyView(true, RecyclerListView.EMPTY_VIEW_ANIMATION_TYPE_ALPHA);
             viewPage.listView.setClipToPadding(false);
+            viewPage.listView.setPadding(0, 0, 0, AndroidUtilities.dp(68));
             viewPage.listView.setPivotY(0);
             if (initialDialogsType == DIALOGS_TYPE_BOT_REQUEST_PEER) {
                 viewPage.listView.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
@@ -3843,7 +3849,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
         floatingButtonContainer = new FrameLayout(context);
         floatingButtonContainer.setVisibility(isInPreviewMode() || onlySelect && initialDialogsType != 10 || folderId != 0 ? View.GONE : View.VISIBLE);
-        contentView.addView(floatingButtonContainer, LayoutHelper.createFrame(56, 56, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.BOTTOM, LocaleController.isRTL ? 14 : 0, 0, LocaleController.isRTL ? 0 : 14, 14));
+        int fabBottomMargin = (folderId == 0 && !onlySelect) ? 80 : 14;
+        contentView.addView(floatingButtonContainer, LayoutHelper.createFrame(56, 56, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.BOTTOM, LocaleController.isRTL ? 14 : 0, 0, LocaleController.isRTL ? 0 : 14, fabBottomMargin));
         floatingButtonContainer.setOnClickListener(v -> {
             if (parentLayout != null && parentLayout.isInPreviewMode()) {
                 finishPreviewFragment();
@@ -5222,6 +5229,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         updatePasscodeButton();
                     } else if (id == 2) {
                         presentFragment(new ProxyListActivity());
+                    } else if (id == 100) {
+                        boolean val = !org.telegram.honeygram.HoneyConfig.isGhostMode();
+                        org.telegram.honeygram.HoneyConfig.setGhostMode(val);
+                        updateGhostButton();
+                        if (getParentActivity() != null) {
+                            android.widget.Toast.makeText(getParentActivity(), val ? LocaleController.getString("GhostModeEnabledToast", R.string.GhostModeEnabledToast) : LocaleController.getString("GhostModeDisabledToast", R.string.GhostModeDisabledToast), android.widget.Toast.LENGTH_SHORT).show();
+                        }
                     } else if (id == 3) {
                         showSearch(true, true, true);
                         actionBar.openSearchField(true);
@@ -5591,6 +5605,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             blurredView.setBackground(null);
         }
         updateDrawerSwipeEnabled();
+        updateGhostButton();
         if (viewPages != null) {
             for (ViewPage viewPage : viewPages) {
                 viewPage.dialogsAdapter.notifyDataSetChanged();
@@ -9318,6 +9333,20 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         } else {
             passcodeItem.setVisibility(View.GONE);
             passcodeItemVisible = false;
+        }
+    }
+
+    private void updateGhostButton() {
+        if (ghostItem == null) {
+            return;
+        }
+        boolean active = org.telegram.honeygram.HoneyConfig.isGhostMode();
+        if (active) {
+            ghostItem.setIconColor(0xFFFFB800);
+            ghostItem.setContentDescription(LocaleController.getString("GhostMode", R.string.GhostMode) + " (Active)");
+        } else {
+            ghostItem.setIconColor(Theme.getColor(Theme.key_actionBarDefaultIcon));
+            ghostItem.setContentDescription(LocaleController.getString("GhostMode", R.string.GhostMode));
         }
     }
 

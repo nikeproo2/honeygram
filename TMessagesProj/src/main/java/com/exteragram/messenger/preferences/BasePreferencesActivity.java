@@ -113,6 +113,8 @@ public abstract class BasePreferencesActivity extends BaseFragment {
         itemAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
         itemAnimator.setDelayAnimations(false);
         listView.setItemAnimator(itemAnimator);
+        listView.setClipToPadding(false);
+        listView.setPadding(0, 0, 0, AndroidUtilities.dp(68));
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
         listView.setAdapter(listAdapter = createAdapter(context));

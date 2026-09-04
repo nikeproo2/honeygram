@@ -57,6 +57,16 @@
     <string name="VisualPremium">Визуальный Telegram Premium</string>
     <string name="VisualStars">Визуальные Telegram Stars</string>
     <string name="VoiceChanger">Модулятор голоса для аудио</string>
-    <string name="KeywordAlerts">Отслеживание ключевых слов</string>
-    <string name="InspectIdData">Инспектор ID и метаданных</string>
+    <!-- Bottom Navigation Tabs -->
+    <string name="TabChats">Чаты</string>
+    <string name="TabContacts">Контакты</string>
+    <string name="TabSettings">Настройки</string>
+    <string name="TabProfile">Профиль</string>
+    <string name="ExportSessionSuccess">Сессия аккаунта экспортирована в: %1$s</string>
+    <string name="ExportSessionFailed">Не удалось экспортировать сессию: %1$s</string>
+    <string name="ImportSessionNotice">Выберите базу данных Telethon (.session) или папку tdata для импорта авторизации.</string>
+    <string name="GhostModePill">Призрак</string>
+    <string name="GhostModeActiveStatus">Ghost активен</string>
+    <string name="GhostModeEnabledToast">Режим Призрака ВКЛЮЧЕН: Полный стелс</string>
+    <string name="GhostModeDisabledToast">Режим Призрака выключен</string>
 </resources>

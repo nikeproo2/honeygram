@@ -408,6 +408,8 @@ public class ContactsActivity extends BaseFragment implements NotificationCenter
         listView.setFastScrollEnabled(RecyclerListView.FastScroll.LETTER_TYPE);
         listView.setLayoutManager(layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         listView.setAdapter(listViewAdapter);
+        listView.setClipToPadding(false);
+        listView.setPadding(0, 0, 0, AndroidUtilities.dp(68));
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
         listView.setEmptyView(emptyView);
@@ -620,7 +622,8 @@ public class ContactsActivity extends BaseFragment implements NotificationCenter
 
         if (!createSecretChat && !returnAsResult) {
             floatingButtonContainer = new FrameLayout(context);
-            frameLayout.addView(floatingButtonContainer, LayoutHelper.createFrame(56 + 20, 56 + 20, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.BOTTOM, LocaleController.isRTL ? 4 : 0, 0, LocaleController.isRTL ? 0 : 4, 0));
+            int fabBottomMargin = destroyAfterSelect ? 0 : 70;
+            frameLayout.addView(floatingButtonContainer, LayoutHelper.createFrame(56 + 20, 56 + 20, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.BOTTOM, LocaleController.isRTL ? 4 : 0, 0, LocaleController.isRTL ? 0 : 4, fabBottomMargin));
             floatingButtonContainer.setOnClickListener(v -> {
                 AndroidUtilities.requestAdjustNothing(getParentActivity(), getClassGuid());
                 new NewContactBottomSheet(ContactsActivity.this, getContext()) {
